@@ -18,13 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-from todos.views import TodoListView
+from todos.views import TodoListView, TodoItemView
 from users.views import UserViewSet
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'todos', TodoListView)
+router.register(r'todoitem', TodoItemView)
 urlpatterns = [
     path('', include(router.urls)),
+    path('todos/item/<int:pk>/', TodoItemView.as_view({'get': 'retrieve'}), name='todoitem-detail'),
     path('admin/', admin.site.urls),
 ]

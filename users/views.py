@@ -1,5 +1,6 @@
+from django.db.models import Q
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,12 +17,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = LargeResultsSetPagination
+    filter_backends = [filters.SearchFilter]
 
-    def get(self, request, format=None):
-        content = {
-            'user': str(request.user),  # `django.contrib.auth.User` instance.
-            'auth': str(request.auth),  # None
-        }
-        return Response(content)
-    
-    
+    search_fields = ['username']
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+
+        first_name = self.request.query_params.get('first_name')
+        last_name = self.request.query_params.get('last_name')
+        if first_name is not None:
+            queryset = queryset.filter(Q(first_name__startswith=first_name), Q(last_name__startswith=last_name))
+        return queryset
